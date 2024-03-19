@@ -33,22 +33,34 @@ class EDA:
         '''
         self.data = pd.DataFrame(data)
         self.removenull()
-        # self.filterLine("course_access", 75)
-        # self.filterLine("allTD", 100)
-        # self.filterLine("user_time", 40)
-        # self.filterLine("interactionsDO", 25)
-        self.normalize(self.data)
+        self.targetCol = ["note", "success", "mention"]
+        self.varCol = [col for col in self.data.columns if col not in self.targetCol]
+        self.filterLine("comp_devoir", 130)
+        self.filterLine("c_TD_all", 100)
+        self.filterLine("comp_fichier", 120)
+        self.filterLine("comp_systeme", 80)
+        self.filterLine("variete_composant", 3, inf=False)
+        self.normalize()
         self.logtransformation()
     def removenull(self):
         self.data.fillna(0, inplace=True)
-    def normalize(self, data):
-        scaler = StandardScaler().fit(data)
-        self.dataN = scaler.transform(data)
-        self.dataN = pd.DataFrame(self.dataN)
-        self.dataN.columns = data.columns
+    def normalize(self):
+        '''
+        Perform a normalisation of non-target variables
+        Then add the target variables to dataset
+        '''
+        scaler = StandardScaler().fit(self.data[self.varCol])
+        self.dataN = scaler.transform(self.data[self.varCol])
+        self.dataN = pd.DataFrame(self.dataN, index=self.data.index)
+        self.dataN.columns = self.data[self.varCol].columns
+        self.dataN[self.targetCol] = self.data[self.targetCol]
     def logtransformation(self):
-        self.dataLog = np.log(self.data + 1)
-        self.dataLog["note"] = self.data["note"]
+        '''
+        Perform a logarithm transformation of non-target variables
+        Then add the target variables to dataset
+        '''
+        self.dataLog = np.log((self.data[self.varCol]) + 1)
+        self.dataLog[self.targetCol] = self.data[self.targetCol]
     def outlierGrubbs(self, data, column_name):
         #Test for normality
         normality = kstest(data[column_name], "norm")
@@ -66,7 +78,7 @@ class EDA:
         else:
             self.data = self.data.loc[self.data[feature] > threshold]
     def boxplot(self, dataplot):
-        dataplot.boxplot(grid=False, rot=90)
+        dataplot.plot(kind='box', rot = 90)
         plt.show()
     def histoplot(self, dataplot, column="note"):
         dataplot.hist(column=column)
@@ -75,30 +87,35 @@ class EDA:
         sb.pairplot(self.data.iloc[:, features])
         plt.show()
     def sbdisplot(self, features="note"):
-        sb.displot(self.data, x=features, hue="note")
+        '''
+        Creates a distribution plot from a specific feature of the data
+        Plot is colored with target variable
+        :param features:
+        :return:
+        '''
+        sb.displot(self.data, x=features, hue="mention")
         plt.show()
     def correlation(self):
+        '''
+        Creates a correlation plot from the data
+        '''
         corr = self.data.corr()
         # Generate a mask for the upper triangle
         mask = np.zeros_like(corr, dtype=np.bool)
         mask[np.triu_indices_from(mask)] = True
-        sb.heatmap(corr, annot=True, mask=mask)
+        sb.heatmap(corr, annot=True, mask=mask, xticklabels=True, yticklabels=True)
         plt.show()
 
-## Outliers
 
 if __name__ == "__main__":
     # Creation of the merged dataset including per user grades and generated features
     n = note.Note("data/notes_anonymes.csv")
     m = merger.Merger(n.data, "feature/").data
-    m.to_csv("merged_dataset.csv")
+    # m.to_csv("merged_dataset.csv")
     explo = EDA(m)
-    print(explo.data.shape)
-    print(explo.data.head())
-    explo.sbdisplot("note")
-    explo.data["note"].plot(kind='box')
-    plt.show()
-    #explo.boxplot(explo.data)
-    #explo.correlation()
+    print(explo.dataN.shape)
+    explo.sbdisplot("ev_homework_handed")
+    # explo.boxplot(explo.dataN)
+    # explo.correlation()
     #for col in explo.dataN.columns:
     #    explo.outlierGrubbs(explo.dataN, col)
