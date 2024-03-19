@@ -27,7 +27,7 @@ class Merger:
     def __init__(self, gradedf, dirpath):
         self.data = pd.DataFrame(gradedf)
         for filename in os.listdir(dirpath):
-            if filename.endswith('.csv'):
+            if filename.endswith('.csv') and filename.startswith('f_'):
                 self.merge(f'{dirpath}{filename}')
             else:
                 continue
@@ -37,7 +37,7 @@ class Merger:
         :param featurefile: path of the .csv feature file
         '''
         self.feature1 = pd.read_csv(featurefile, index_col="Utilisateur")
-        # Generating a name for the feature colonne in the dataframe
+        # Generating a name for the feature column in the dataframe
         featurename = featurefile[10:-4]
         #Adding the new feature in the dataframe
         self.data[featurename] = self.feature1

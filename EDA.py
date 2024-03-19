@@ -90,10 +90,10 @@ class EDA:
 if __name__ == "__main__":
     # Creation of the merged dataset including per user grades and generated features
     n = note.Note("data/notes_anonymes.csv")
-    m = merger.Merger(n.data, "feature/").data
-    #m.to_csv("merged_dataset.csv")
-    explo = EDA(m)
-    print(explo.data.shape)
+    # m = merger.Merger(n.data, "feature/").data
+    # #m.to_csv("merged_dataset.csv")
+    # explo = EDA(m)
+    # print(explo.data.shape)
     #print(explo.data.head())
     #explo.sbdisplot("interactions")
     #explo.boxplot(explo.dataN)
@@ -101,16 +101,3 @@ if __name__ == "__main__":
     #explo.correlation()
     #for col in explo.dataN.columns:
     #    explo.outlierGrubbs(explo.dataN, col)
-    # Trace import
-    t = trace.Trace("data/logs_anonymes.csv").data
-    print(t.shape)
-    # Liste des étudiants
-    etudiants = n.data.index.values
-    print(etudiants)
-    # Liste des profs
-    profs = [x for x in t["Utilisateur"].factorize()[1].values if x not in etudiants]
-    print(profs)
-    t["Statut"] = t["Utilisateur"].replace(etudiants, "etudiant")
-    t["Statut"] = t["Statut"].replace(profs, "prof")
-    print(t.shape)
-    print(t.loc[t["Composant"] == "Système",["Contexte", "Evenement", "Statut"]].groupby(t["Statut"]).value_counts())
