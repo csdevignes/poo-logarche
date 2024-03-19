@@ -33,10 +33,10 @@ class EDA:
         '''
         self.data = pd.DataFrame(data)
         self.removenull()
-        self.filterLine("course_access", 75)
-        self.filterLine("allTD", 100)
-        self.filterLine("user_time", 40)
-        self.filterLine("interactionsDO", 25)
+        # self.filterLine("course_access", 75)
+        # self.filterLine("allTD", 100)
+        # self.filterLine("user_time", 40)
+        # self.filterLine("interactionsDO", 25)
         self.normalize(self.data)
         self.logtransformation()
     def removenull(self):
@@ -90,13 +90,14 @@ class EDA:
 if __name__ == "__main__":
     # Creation of the merged dataset including per user grades and generated features
     n = note.Note("data/notes_anonymes.csv")
-    # m = merger.Merger(n.data, "feature/").data
-    # #m.to_csv("merged_dataset.csv")
-    # explo = EDA(m)
-    # print(explo.data.shape)
-    #print(explo.data.head())
-    #explo.sbdisplot("interactions")
-    #explo.boxplot(explo.dataN)
+    m = merger.Merger(n.data, "feature/").data
+    m.to_csv("merged_dataset.csv")
+    explo = EDA(m)
+    print(explo.data.shape)
+    print(explo.data.head())
+    explo.sbdisplot("note")
+    explo.data["note"].plot(kind='box')
+    plt.show()
     #explo.boxplot(explo.data)
     #explo.correlation()
     #for col in explo.dataN.columns:
