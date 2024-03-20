@@ -104,7 +104,8 @@ if __name__ == "__main__":
     explo = EDA.EDA(merged)
     print(explo.data)
     colToDelete = ""
-    excludedCol = ["success", "mention"]
+    # excludedCol = ["success", "mention"]
+    excludedCol = ["success", "mention", "comp_devoir", "comp_fichier", "comp_feedback", "comp_presence", "comp_remises", "comp_systeme", "c_TD_all", "interactions", "ev_class_access"]
     varCol = [col for col in explo.data.columns if col not in excludedCol]
     model = CalculateModel(explo.data[varCol])
     while colToDelete != "STOP":

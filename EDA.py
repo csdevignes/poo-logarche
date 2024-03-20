@@ -95,11 +95,12 @@ class EDA:
         '''
         sb.displot(self.data, x=features, hue="mention")
         plt.show()
-    def correlation(self):
+    def correlation(self, excludedCol = None):
         '''
         Creates a correlation plot from the data
         '''
-        corr = self.data.corr()
+        varCol = [col for col in explo.data.columns if col not in excludedCol]
+        corr = self.data[varCol].corr()
         # Generate a mask for the upper triangle
         mask = np.zeros_like(corr, dtype=np.bool)
         mask[np.triu_indices_from(mask)] = True
@@ -116,6 +117,8 @@ if __name__ == "__main__":
     print(explo.dataN.shape)
     explo.sbdisplot("ev_homework_handed")
     # explo.boxplot(explo.dataN)
-    # explo.correlation()
+    excludedCol = ["success", "mention", "comp_devoir", "comp_fichier", "comp_feedback", "comp_presence",
+                   "comp_remises", "comp_systeme", "c_TD_all", "interactions", "ev_class_access"]
+    explo.correlation(excludedCol)
     #for col in explo.dataN.columns:
     #    explo.outlierGrubbs(explo.dataN, col)

@@ -14,15 +14,16 @@ Analyse des traces de Arche en lien avec les notes des étudiants
 import matplotlib.pyplot as plt
 import pandas as pd
 
-# Charge le fichier csv des notes
-# Et supprime les étudiants absents
-
 class Note:
     '''
-    Crée un objet Note qui sert à charger le fichier notes
-    Et a supprimer les élèves absents
+    Creates a Note object to load grade data from a csv file
+    and pre-format it for further analyses.
     '''
     def __init__(self, filename):
+        '''
+        Initialize Note object by reading and processing the file
+        :param filename: path to grade csv file
+        '''
         self.lire(filename)
         self.grade_category()
     def lire(self, filename):
