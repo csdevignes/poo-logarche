@@ -12,53 +12,65 @@ Machine learning - linear regression
 @email: claire-sophie.devignes9@etu.univ-lorraine.fr
 @date: 22 février 24
 '''
-
+import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, cross_validate
 from sklearn.metrics import mean_squared_error
 from tabulate import tabulate
 import note, merger, EDA
 
-# We define the functions for calculation of linear model using statsmodel and scikit-learn packages
 def calculSM(X, Y) :
      """
-     Modélisation des données avec statsmodels: permet d'obtenir le AIC et les p-values
-     :param X: données explicatives, tableau pandas
-     :param Y: donnée à expliquer, tableau pandas
-     :return: l'objet statsmodels resultatSM qui contient les résultats de la régression lineaire
+     Data modelisation using statsmodels: allows to obtain the coefficients, AIC and p-values
+     :param X: dataframe with all the created features
+     :param Y: dataframe with target feature
+     :return: A statsmodels object which contains resutls of linear regression
      """
-     #On rajoute la constante a X pour avoir le beta 0, la colonne est automatiquement appelée const
-     #Xconst = sm.add_constant(X)
-     #On crée le modèle et utilise la méthode fit pour trouver l'estimation des coefficients
      lnrSM = sm.OLS(Y,X, hasconst=True)
-     resultatSM = lnrSM.fit(disp=0) #On met disp=0 pour éviter qu'il affiche des messages à chaque calcul
+     resultatSM = lnrSM.fit(disp=0)
      return resultatSM
 
 class LinearSK:
-    def __init__(self, X, Y, cv=10):
+    '''
+    Object LinearSK which calculates r2 score and mean squared error
+    for a given X and Y
+    '''
+    def __init__(self, X, Y):
+        '''
+        Initialize LinearSK object using
+        :param X: dataframe with all created features
+        :param Y: dataframe with target feature
+        '''
         self.X = X
         self.Y = Y
-        self.cv = cv
         self.calculatelnr()
         self.calculateMSE()
     def calculatelnr(self):
+        '''
+        Compute linear regression and store score and prediction
+        '''
         regR = LinearRegression()
         regR.fit(self.X, self.Y)
-        #scores = cross_val_score(regR, X, Y, cv=cv, scoring='accuracy')
         self.r2score = regR.score(self.X, self.Y)
         self.predictions = regR.predict(self.X)
     def calculateMSE(self):
+        '''
+        Calculates mean squared error
+        '''
         self.mse = mean_squared_error(self.Y, self.predictions)
 
 class CalculateModel:
+    '''
+    Object regrouping data loading and linear regression methods
+    as well as result display
+    '''
     def __init__(self, data):
         '''
-        Collect input dataframe, split it, calculate linear models
-        and print a pretty table with all the indicators calculated.
-        :param data: dataframe
+        Collect input dataframe and split it
+        :param data: dataframe from EDA
         '''
         self.data = pd.DataFrame(data)
         self.split()
@@ -96,20 +108,58 @@ class CalculateModel:
             self.resDF.loc[col, "R²"] = scoresNewX.r2score
             self.resDF.loc[col, "MSE"] = scoresNewX.mse
         print(tabulate(self.resDF, headers="keys", tablefmt="psql", floatfmt=".3f"))
+class Cross_validation:
+    def __init__(self, X, Y):
+        self.X = X
+        self.Y = Y
+    def cross_valide(self, excludedCol, cv=5):
+        self.scoring = ['r2', 'neg_mean_squared_error']
+        varCol = [col for col in self.X.columns if col not in excludedCol]
+        regR = LinearRegression()
+        self.scores = cross_validate(regR, self.X[varCol], self.Y, cv=cv, scoring=self.scoring)
+        return self.scores
+class FinalModel:
+    def __init__(self, X, Y, excludedCol):
+        self.X = X
+        self.Y = Y
+        varCol = [col for col in self.X.columns if col not in excludedCol]
+        self.X = self.X[varCol]
+    def afficheEq(self):
+        resSM = calculSM(self.X, self.Y)
+        for index in resSM.params.index:
+             print(f"({round(resSM.params[index], 3)} * {index}) + ", end="")
 
 
 if __name__ == "__main__":
     n = note.Note("data/notes_anonymes.csv")
     merged = merger.Merger(n.data,"feature/").data
     explo = EDA.EDA(merged)
-    print(explo.data)
     colToDelete = ""
     # excludedCol = ["success", "mention"]
+    # Columns excluded because of high correlaction with other features
     excludedCol = ["success", "mention", "comp_devoir", "comp_fichier", "comp_feedback", "comp_presence", "comp_remises", "comp_systeme", "c_TD_all", "interactions", "ev_class_access"]
     varCol = [col for col in explo.data.columns if col not in excludedCol]
     model = CalculateModel(explo.data[varCol])
-    while colToDelete != "STOP":
-         model.calculate()
-         colToDelete = input("Quelle variable voulez vous supprimer ? (Pour arrêter entrez STOP) ")
-         if colToDelete in model.X:
-             model.X = model.X.drop(columns=colToDelete)
+    ## Backward selection of the model
+    # while colToDelete != "STOP":
+    #      model.calculate()
+    #      colToDelete = input("Quelle variable voulez vous supprimer ? (Pour arrêter entrez STOP) ")
+    #      if colToDelete in model.X:
+    #          model.X = model.X.drop(columns=colToDelete)
+    ## Cross validation
+    excludedCol1 = excludedCol + ["ev_presence_check", "day_with_inter", "ev_presence_set", "session_sum"]
+    excludedCol2 = excludedCol1 + ["c_notTD", "c_TD5", "ev_course_access", "c_TD7", "ev_homework_status"]
+    excludedCol3 = excludedCol2 + ["interactionsAH", "interactionsDO", "c_TD3", "c_TD6"]
+    # xmodel = Cross_validation(model.X, model.Y)
+    # scores = xmodel.cross_valide(excludedCol, cv=10)
+    # scores1 = xmodel.cross_valide(excludedCol1, cv=10)
+    # scores2 = xmodel.cross_valide(excludedCol2, cv=10)
+    # scores3 = xmodel.cross_valide(excludedCol3, cv=10)
+    # for s in xmodel.scoring:
+    #     plt.boxplot([scores[f"test_{s}"], scores1[f"test_{s}"], scores2[f"test_{s}"], scores3[f"test_{s}"]],
+    #             labels=["Modèle1", "Modèle2", "Modèle3", "Modèle4"])
+    #     plt.title(f"{s}")
+    #     plt.show()
+    ## Print final model
+    fmodel = FinalModel(model.X, model.Y, excludedCol3)
+    fmodel.afficheEq()

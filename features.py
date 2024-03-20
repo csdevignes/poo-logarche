@@ -22,17 +22,25 @@ import statistics as stat
 
 class Feature:
     '''
-    Crée un objet feature qui extrait les données de trace, crée les catégories nécessaires
-    et sauvegarde un fichier .csv
+    Create a general object Feature which extract data from trace, creates neeeded
+    categories and save a .csv file
     '''
 
     def __init__(self, df):
+        '''
+        Initialize object with dataframe obtained from trace object
+        :param df: dataframe from trace
+        '''
         self.data = df
         self.split_date()
         self.split_hour()
         self.extract_td()
 
     def split_date(self):
+        '''
+        Creates a column date from "Heure". Categorizes date in working days
+        (1) and off-days (0).
+        '''
         self.data["Date"] = pd.to_datetime(self.data["Heure"]).dt.date
         self.data["Working_day"] = ((self.data["Date"].between(date(2023, 12, 18), date(2023, 12, 22))) |
                                     (self.data["Date"].between(date(2023, 12, 11), date(2023, 12, 15))) |
@@ -42,45 +50,69 @@ class Feature:
                                     (self.data["Date"].between(date(2023, 11, 13), date(2023, 11, 17))) |
                                     (self.data["Date"].between(date(2023, 11, 6), date(2023, 11, 10))) |
                                     (self.data["Date"].between(date(2023, 11, 2), date(2023, 11, 3))))
-
     def split_hour(self):
+        '''
+        Creates a column "hour only" from "Heure". Categorizes data in working
+        hours (1) and off-hours (0).
+        '''
         self.data["Hour_only"] = pd.to_datetime(self.data["Heure"]).dt.time
         self.data["Working_hour"] = ((self.data["Hour_only"].between(time(9, 00), time(18, 00))) &
                                      (self.data["Working_day"] == True))
-
     def extract_td(self):
+        '''
+        Creates a column "TD" which contains the number of the TD to which
+        the log entry is related.
+        '''
         self.data["TD"] = self.data["Contexte"].str.extract(r'TD#?(\d)')
         self.data["TD"] = self.data["TD"].astype('object').fillna(0).astype('int64')
-
-    def transformation(self):
-        self.feature = self.data
-
     def save_csv(self, filename="feature"):
+        '''
+        Creates a method to save a given feature as csv, in the feature
+        folder.
+        :param filename: string, name of the feature to be saved
+        '''
         self.feature.to_csv(f"feature/f_{filename}.csv")
 
 class Interactions(Feature):
     '''
-    Crée les features Interactions qui correspond au nombre d'interaction par Utilisateur sur toute la période,
-    ou seulement en dehors des heures de cours, ou pendant les weekend/vacances.
+    Creates the features Interactions which are related to the count of
+    interaction per user, their frequency and variety.
     '''
 
     def count_interaction(self):
+        '''
+        Count the total number of interactions per user.
+        '''
         self.feature = self.data["Utilisateur"].value_counts()
         self.save_csv("interactions")
 
     def count_afterhour_interaction(self):
+        '''
+        Count the number of interaction on off-hours, on working days.
+        '''
         self.feature = self.data.loc[
             ((self.data["Working_hour"] == False) & (self.data["Working_day"] == True)), "Utilisateur"].value_counts()
         self.save_csv("interactionsAH")
 
     def count_dayoff_interaction(self):
+        '''
+        Count the number of interaction on off-days.
+        '''
         self.feature = self.data.loc[(self.data["Working_day"] == False), "Utilisateur"].value_counts()
         self.save_csv("interactionsDO")
 
     def _count_workhour_interaction(self):
+        '''
+        Count the number of interaction on working-hours, used for control of the methods only.
+        '''
         self.feature = self.data.loc[(self.data["Working_hour"] == True), "Utilisateur"].value_counts()
         self.save_csv("interactionsWH")
     def variete(self):
+        '''
+        Count the variety of interactions, as the number of different interaction per student.
+        Summarize the number of distinct interactions.
+        Quantified for each column individually and then for the combination of the 3 columns.
+        '''
         col_var = list(("Composant", "Contexte", "Evenement"))
         for col in col_var:
             self.feature = self.data[["Utilisateur", col]].groupby("Utilisateur").nunique()
@@ -91,29 +123,43 @@ class Interactions(Feature):
                         .groupby("Utilisateur").nunique())
         self.save_csv("variete_all")
     def day_with_inter(self):
+        '''
+        Count the number of day with at least one interaction per user.
+        '''
         self.feature = self.data.loc[:, ["Utilisateur", "Date"]].groupby("Utilisateur").nunique()
         self.save_csv("day_with_inter")
     def inter_per_day_mean(self):
+        '''
+        Count the number of interaction per day, and aggregates the mean.
+        '''
         self.feature = self.data.loc[:, ["Utilisateur", "Date"]].groupby("Utilisateur").value_counts()
         self.feature = self.feature.groupby("Utilisateur").mean()
         self.save_csv("inter_per_day_mean")
     def inter_per_day_var(self):
+        '''
+        Count the number of interaction per day, and aggregates the variance.
+        '''
         self.feature = self.data.loc[:, ["Utilisateur", "Date"]].groupby("Utilisateur").value_counts()
         self.feature = self.feature.groupby("Utilisateur").var()
         self.save_csv("inter_per_day_var")
 class InteractionType(Feature):
     '''
-    Crée les feature Study qui tentent de caractériser les type d'interactions des étudiants avec ARCHE
-    quantifie la présence effective en cours, la consultation des rapports de présence, l'accès à la page d'accueil du cours,
-
+    Creates the features describing the type of interaction of students.
     '''
     def composant(self):
+        '''
+        Count the number of interactions related to each "Composant"
+        '''
         self.composants = self.data["Composant"].value_counts()
         self.composants = self.composants.loc[self.composants.values > 100].index
         for comp in self.composants:
             self.feature = self.data.loc[(self.data["Composant"] == comp), "Utilisateur"].value_counts()
             self.save_csv(f"comp_{re.sub('[éè]', 'e', comp.split()[0].lower())}")
     def evenements(self):
+        '''
+        Count the number of interactions related to each "Evenement",
+        selected previously from trace data analysis.
+        '''
         self.evenement_list = {"Statut de présence renseigné par l'étudiant": "presence_set",
                            "Rapport de session consulté": "presence_check",
                            "Cours consulté": "class_access",
@@ -126,11 +172,12 @@ class InteractionType(Feature):
             self.save_csv(f"ev_{self.evenement_list[ev]}")
 class Materials(Feature):
     '''
-    Crée les feature Materials, qui définissent comment les étudiants interagissent avec les fichiers sur Arche
-    quantifie le nombre de fichier déposé pour les devoirs, le nombre de consultation de chaque TD
-    et du reste des cours.
+    Creates the features Materials describing interactions of students with files available on Arche.
     '''
     def td(self):
+        '''
+        Count the amount of events related to each TD
+        '''
         for i in range(1, 8):
             if i > 0:
                 self.feature = self.data.loc[((self.data["Evenement"] == "Module de cours consulté") & (
@@ -138,16 +185,30 @@ class Materials(Feature):
                 self.save_csv(f"c_TD{i}")
 
     def alltd(self):
+        '''
+        Count the amount of events related to any TD
+        '''
         self.feature = self.data.loc[((self.data["Evenement"] == "Module de cours consulté") & (
             self.data["TD"].isin([1, 2, 3, 4, 5, 6, 7]))), "Utilisateur"].value_counts()
         self.save_csv("c_TD_all")
 
     def course_access(self):
+        '''
+        Count the amount of events of course consultation not related to any TD
+        '''
         self.feature = self.data.loc[((self.data["Evenement"] == "Module de cours consulté") & (
             ~self.data["TD"].isin([1, 2, 3, 4, 5, 6, 7]))), "Utilisateur"].value_counts()
         self.save_csv("c_notTD")
 class UserTime(Feature):
+    '''
+    Creates the features UserTime related to user session duration
+    '''
     def session_time_record(self):
+        '''
+        Quantifies the duration of each session. Session ends when user stay inactive
+        for more than 5 min. Stores information for each session in a dict
+        user : [list of session durations]
+        '''
         self.data = self.data.sort_values(by=["Utilisateur", "Heure"], axis=0)
         self.res = dict()
         user = self.data.iat[0, 1]
@@ -166,6 +227,9 @@ class UserTime(Feature):
             user = ligne["Utilisateur"]
             temps = ligne["Heure"]
     def session_sum(self):
+        '''
+        Quantifies the total time spent on arche per user
+        '''
         resSum = self.res.copy()
         for x, y in resSum.items():
             resSum[x] = sum(y) /60
@@ -173,6 +237,9 @@ class UserTime(Feature):
         self.feature.index.name = "Utilisateur"
         self.save_csv("session_sum")
     def session_avg(self):
+        '''
+        Quantifies the average session time per user
+        '''
         resAvg = self.res.copy()
         for x, y in resAvg.items():
             resAvg[x] = stat.mean(y) /60

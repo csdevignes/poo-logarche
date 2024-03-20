@@ -25,11 +25,14 @@ import math
 
 # Pandas option to be set for optimal data exploration
 pd.set_option('display.max_columns', None)
-#pd.set_option('display.max_colwidth', 1000)
 
 class EDA:
+    '''
+    Object EDA contains all the methods for exploratory data analysis and data cleaning.
+    '''
     def __init__(self, data):
         '''
+        Loads dataframe from merger and calls all data cleaning methods
         '''
         self.data = pd.DataFrame(data)
         self.removenull()
@@ -43,6 +46,9 @@ class EDA:
         self.normalize()
         self.logtransformation()
     def removenull(self):
+        '''
+        Replaces null values with zeros.
+        '''
         self.data.fillna(0, inplace=True)
     def normalize(self):
         '''
@@ -62,7 +68,12 @@ class EDA:
         self.dataLog = np.log((self.data[self.varCol]) + 1)
         self.dataLog[self.targetCol] = self.data[self.targetCol]
     def outlierGrubbs(self, data, column_name):
-        #Test for normality
+        '''
+        Test a specific columns for outlier presence, using Grubbs
+        method.
+        :param data: normalized dataframe dataN
+        :param column_name: name of the feature to test for outliers
+        '''
         normality = kstest(data[column_name], "norm")
         if normality[1] < 0.05:
             print(f"Distribution is not normal for {column_name}. Grubbs aborted.")
@@ -73,33 +84,55 @@ class EDA:
             print(f"Index: {idoutliers}")
             print(f"Values: {valueoutliers}")
     def filterLine(self, feature, threshold, inf=True):
+        '''
+        Allows filtering of the dataset according to
+        :param feature: name of feature column to filter on
+        :param threshold: numeric value to use for filter
+        :param inf: bool, if True keeps values below threshold
+                if False keeps values above threshold
+        '''
         if inf:
             self.data = self.data.loc[self.data[feature] < threshold]
         else:
             self.data = self.data.loc[self.data[feature] > threshold]
     def boxplot(self, dataplot):
+        '''
+        Generates boxplot from a specified subset of the data
+        :param dataplot: dataframe to plot
+        '''
         dataplot.plot(kind='box', rot = 90)
         plt.show()
     def histoplot(self, dataplot, column="note"):
+        '''
+        Generates simple histoplot to see distribution of a
+        feature
+        :param dataplot: dataframe
+        :param column: string, feature to plot distribution on
+        '''
         dataplot.hist(column=column)
         plt.show()
     def sbpairplot(self, features=[0, 1, 2, 3, 4, 5]):
+        '''
+        Generates a pairplot of features against each other, with
+        distribution plot in the diagonal line.
+        :param features: list of indices of column features to plot
+        '''
         sb.pairplot(self.data.iloc[:, features])
         plt.show()
     def sbdisplot(self, features="note"):
         '''
-        Creates a distribution plot from a specific feature of the data
-        Plot is colored with target variable
-        :param features:
-        :return:
+        Creates a fancy distribution histoplot from a specific
+        feature of the data. Plot is colored with target variable
+        :param features: string, feature to plot distribution on
         '''
         sb.displot(self.data, x=features, hue="mention")
         plt.show()
     def correlation(self, excludedCol = None):
         '''
         Creates a correlation plot from the data
+        :param excludedCol: list of column names to exclude
         '''
-        varCol = [col for col in explo.data.columns if col not in excludedCol]
+        varCol = [col for col in self.data.columns if col not in excludedCol]
         corr = self.data[varCol].corr()
         # Generate a mask for the upper triangle
         mask = np.zeros_like(corr, dtype=np.bool)

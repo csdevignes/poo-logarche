@@ -27,12 +27,22 @@ class Note:
         self.lire(filename)
         self.grade_category()
     def lire(self, filename):
+        '''
+        Read the csv setting "ID" as index column, and call processing methods
+        :param filename: path to grade csv file
+        '''
         self.data = pd.read_csv(filename, index_col="ID")
         self._remove_absents()
         self._correct_typing()
     def _remove_absents(self):
+        '''
+        Remove lines with no grade (absent students)
+        '''
         self.data = self.data[self.data["note"] != "ABS"]
     def _correct_typing(self):
+        '''
+        Set the proper type for grades
+        '''
         self.data["note"] = self.data["note"].astype('float')
     def grade_category(self):
         '''
@@ -68,8 +78,6 @@ class Note:
             return '4'
         else:
             return '5'
-
-
 
 if __name__ == "__main__":
     n = Note("data/notes_anonymes.csv")
