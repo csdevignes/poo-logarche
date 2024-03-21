@@ -31,6 +31,7 @@ class Merger:
                 self.merge(f'{dirpath}{filename}')
             else:
                 continue
+        print("Dataset merged.")
     def merge(self, featurefile):
         '''
         Merge one feature with the grade dataframe

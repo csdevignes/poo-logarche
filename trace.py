@@ -22,7 +22,7 @@ class Trace:
     Creates an object Trace which purpose is to load the log file
     from ARCHE, and preformat its content for further use.
     '''
-    def __init__(self, filename):
+    def __init__(self, filename = "data/logs_anonymes.csv"):
         '''
         Initialise trace object using several methods called in lire
         :param filename: path to the log file from ARCHE csv file
@@ -81,7 +81,7 @@ class Trace:
 
 #Test
 if __name__ == "__main__":
-    t = Trace("data/logs_anonymes.csv")
+    t = Trace()
     pd.set_option('display.max_columns', None)
     print(t.data.info())
     print(t.data.describe(include="all"))

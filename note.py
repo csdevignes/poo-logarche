@@ -19,7 +19,7 @@ class Note:
     Creates a Note object to load grade data from a csv file
     and pre-format it for further analyses.
     '''
-    def __init__(self, filename):
+    def __init__(self, filename = "data/notes_anonymes.csv"):
         '''
         Initialize Note object by reading and processing the file
         :param filename: path to grade csv file
@@ -80,11 +80,10 @@ class Note:
             return '5'
 
 if __name__ == "__main__":
-    n = Note("data/notes_anonymes.csv")
+    gradepath = ""
+    n = Note(gradepath)
     print(n.data)
-    n.data["success"].value_counts().hist()
-    plt.show()
+    # n.data["success"].value_counts().hist()
+    # plt.show()
     print(n.data["success"].value_counts())
     print(n.data["mention"].value_counts())
-    n.data["mention"].value_counts().hist()
-    plt.show()

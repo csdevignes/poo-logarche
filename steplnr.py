@@ -112,17 +112,22 @@ class Cross_validation:
     def __init__(self, X, Y):
         self.X = X
         self.Y = Y
-    def cross_valide(self, excludedCol, cv=5):
+    def cross_valide_r2(self, varCol, cv=5):
         self.scoring = ['r2', 'neg_mean_squared_error']
-        varCol = [col for col in self.X.columns if col not in excludedCol]
+        varCol = varCol
         regR = LinearRegression()
         self.scores = cross_validate(regR, self.X[varCol], self.Y, cv=cv, scoring=self.scoring)
-        return self.scores
+        return self.scores["test_r2"]
+    def cross_valide_mse(self, varCol, cv=5):
+        self.scoring = ['r2', 'neg_mean_squared_error']
+        varCol = varCol
+        regR = LinearRegression()
+        self.scores = cross_validate(regR, self.X[varCol], self.Y, cv=cv, scoring=self.scoring)
+        return self.scores["test_neg_mean_squared_error"]
 class FinalModel:
-    def __init__(self, X, Y, excludedCol):
+    def __init__(self, X, Y, varCol):
         self.X = X
         self.Y = Y
-        varCol = [col for col in self.X.columns if col not in excludedCol]
         self.X = self.X[varCol]
     def afficheEq(self):
         resSM = calculSM(self.X, self.Y)

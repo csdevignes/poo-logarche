@@ -85,6 +85,7 @@ class Interactions(Feature):
         '''
         self.feature = self.data["Utilisateur"].value_counts()
         self.save_csv("interactions")
+        print("All interactions : interactions")
 
     def count_afterhour_interaction(self):
         '''
@@ -93,6 +94,7 @@ class Interactions(Feature):
         self.feature = self.data.loc[
             ((self.data["Working_hour"] == False) & (self.data["Working_day"] == True)), "Utilisateur"].value_counts()
         self.save_csv("interactionsAH")
+        print("After-hour interactions : interactionsAH")
 
     def count_dayoff_interaction(self):
         '''
@@ -100,6 +102,7 @@ class Interactions(Feature):
         '''
         self.feature = self.data.loc[(self.data["Working_day"] == False), "Utilisateur"].value_counts()
         self.save_csv("interactionsDO")
+        print("Day-off interactions : interactionsDO")
 
     def _count_workhour_interaction(self):
         '''
@@ -122,12 +125,14 @@ class Interactions(Feature):
         self.feature = (self.data[["Utilisateur", "Concat_Var"]]
                         .groupby("Utilisateur").nunique())
         self.save_csv("variete_all")
+        print("Interaction variety : variete_[...]")
     def day_with_inter(self):
         '''
         Count the number of day with at least one interaction per user.
         '''
         self.feature = self.data.loc[:, ["Utilisateur", "Date"]].groupby("Utilisateur").nunique()
         self.save_csv("day_with_inter")
+        print("Day with interaction : day_with_inter")
     def inter_per_day_mean(self):
         '''
         Count the number of interaction per day, and aggregates the mean.
@@ -135,6 +140,7 @@ class Interactions(Feature):
         self.feature = self.data.loc[:, ["Utilisateur", "Date"]].groupby("Utilisateur").value_counts()
         self.feature = self.feature.groupby("Utilisateur").mean()
         self.save_csv("inter_per_day_mean")
+        print("Mean interactions per day : inter_per_day_mean")
     def inter_per_day_var(self):
         '''
         Count the number of interaction per day, and aggregates the variance.
@@ -142,6 +148,7 @@ class Interactions(Feature):
         self.feature = self.data.loc[:, ["Utilisateur", "Date"]].groupby("Utilisateur").value_counts()
         self.feature = self.feature.groupby("Utilisateur").var()
         self.save_csv("inter_per_day_var")
+        print("Variance of interactions per day : inter_per_day_var")
 class InteractionType(Feature):
     '''
     Creates the features describing the type of interaction of students.
@@ -155,6 +162,7 @@ class InteractionType(Feature):
         for comp in self.composants:
             self.feature = self.data.loc[(self.data["Composant"] == comp), "Utilisateur"].value_counts()
             self.save_csv(f"comp_{re.sub('[éè]', 'e', comp.split()[0].lower())}")
+        print("Interaction related to each composant : comp_[...]")
     def evenements(self):
         '''
         Count the number of interactions related to each "Evenement",
@@ -170,6 +178,7 @@ class InteractionType(Feature):
         for ev in self.evenement_list:
             self.feature = self.data.loc[(self.data["Evenement"] == ev), "Utilisateur"].value_counts()
             self.save_csv(f"ev_{self.evenement_list[ev]}")
+        print(f"Events : {self.evenement_list}")
 class Materials(Feature):
     '''
     Creates the features Materials describing interactions of students with files available on Arche.
@@ -183,7 +192,7 @@ class Materials(Feature):
                 self.feature = self.data.loc[((self.data["Evenement"] == "Module de cours consulté") & (
                             self.data["TD"] == i)), "Utilisateur"].value_counts()
                 self.save_csv(f"c_TD{i}")
-
+        print("Interaction with TD Materials : c_TD1, ..., c_TD7")
     def alltd(self):
         '''
         Count the amount of events related to any TD
@@ -191,6 +200,7 @@ class Materials(Feature):
         self.feature = self.data.loc[((self.data["Evenement"] == "Module de cours consulté") & (
             self.data["TD"].isin([1, 2, 3, 4, 5, 6, 7]))), "Utilisateur"].value_counts()
         self.save_csv("c_TD_all")
+        print("Interaction with any TD Materials : c_TD_all")
 
     def course_access(self):
         '''
@@ -199,6 +209,7 @@ class Materials(Feature):
         self.feature = self.data.loc[((self.data["Evenement"] == "Module de cours consulté") & (
             ~self.data["TD"].isin([1, 2, 3, 4, 5, 6, 7]))), "Utilisateur"].value_counts()
         self.save_csv("c_notTD")
+        print("Interaction with non-TD Materials : c_notTD")
 class UserTime(Feature):
     '''
     Creates the features UserTime related to user session duration
@@ -236,6 +247,7 @@ class UserTime(Feature):
         self.feature = pd.Series(resSum)
         self.feature.index.name = "Utilisateur"
         self.save_csv("session_sum")
+        print("Total time spent online : session_sum")
     def session_avg(self):
         '''
         Quantifies the average session time per user
@@ -246,6 +258,7 @@ class UserTime(Feature):
         self.feature = pd.Series(resAvg)
         self.feature.index.name = "Utilisateur"
         self.save_csv("session_avg")
+        print("Average session duration : session_avg")
 
 if __name__ == "__main__":
     pd.set_option('display.max_columns', None)
