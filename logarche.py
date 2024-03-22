@@ -37,7 +37,7 @@ try:
         t = trace.Trace().data
     else:
         t = trace.Trace(gradepath).data
-    print(f"Logs loaded : {len(t)} entries.")
+    print(f"Logs loaded : {len(t)} entries for {len(t['Utilisateur'].unique())} users.")
 except:
     logging.warning("Error with log file.")
 
@@ -129,5 +129,5 @@ plt.show()
 
 finalchoice = int(input(f"Based on these metrics, which model would you select ?\n{savedmodels['Model']}. Enter model number:"))
 # ## Print final model
-fmodel = steplnr.FinalModel(model.X, model.Y, savedmodels.iat[finalchoice, 1])
+fmodel = steplnr.FinalModel(modelFull.X, modelFull.Y, savedmodels.iat[finalchoice, 1])
 fmodel.afficheEq()

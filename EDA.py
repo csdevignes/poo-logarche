@@ -38,11 +38,11 @@ class EDA:
         self.removenull()
         self.targetCol = ["note", "success", "mention"]
         self.varCol = [col for col in self.data.columns if col not in self.targetCol]
-        self.filterLine("comp_devoir", 130)
+        # self.filterLine("comp_devoir", 130)
         self.filterLine("c_TD_all", 100)
-        self.filterLine("comp_fichier", 120)
-        self.filterLine("comp_systeme", 80)
-        self.filterLine("variete_composant", 3, inf=False)
+        self.filterLine("comp_fichier", 96)
+        # self.filterLine("comp_systeme", 80)
+        # self.filterLine("variete_composant", 3, inf=False)
         self.normalize()
         self.logtransformation()
     def removenull(self):
@@ -59,7 +59,7 @@ class EDA:
         self.dataN = scaler.transform(self.data[self.varCol])
         self.dataN = pd.DataFrame(self.dataN, index=self.data.index)
         self.dataN.columns = self.data[self.varCol].columns
-        self.dataN[self.targetCol] = self.data[self.targetCol]
+        # self.dataN[self.targetCol] = self.data[self.targetCol]
     def logtransformation(self):
         '''
         Perform a logarithm transformation of non-target variables
@@ -102,15 +102,6 @@ class EDA:
         '''
         dataplot.plot(kind='box', rot = 90)
         plt.show()
-    def histoplot(self, dataplot, column="note"):
-        '''
-        Generates simple histoplot to see distribution of a
-        feature
-        :param dataplot: dataframe
-        :param column: string, feature to plot distribution on
-        '''
-        dataplot.hist(column=column)
-        plt.show()
     def sbpairplot(self, features=[0, 1, 2, 3, 4, 5]):
         '''
         Generates a pairplot of features against each other, with
@@ -148,10 +139,10 @@ if __name__ == "__main__":
     # m.to_csv("merged_dataset.csv")
     explo = EDA(m)
     print(explo.dataN.shape)
-    explo.sbdisplot("ev_homework_handed")
+    #explo.sbdisplot("ev_homework_handed")
     # explo.boxplot(explo.dataN)
     excludedCol = ["success", "mention", "comp_devoir", "comp_fichier", "comp_feedback", "comp_presence",
                    "comp_remises", "comp_systeme", "c_TD_all", "interactions", "ev_class_access"]
-    explo.correlation(excludedCol)
-    #for col in explo.dataN.columns:
-    #    explo.outlierGrubbs(explo.dataN, col)
+    #explo.correlation(excludedCol)
+    for col in explo.dataN.columns:
+        explo.outlierGrubbs(explo.dataN, col)

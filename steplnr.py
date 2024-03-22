@@ -109,27 +109,56 @@ class CalculateModel:
             self.resDF.loc[col, "MSE"] = scoresNewX.mse
         print(tabulate(self.resDF, headers="keys", tablefmt="psql", floatfmt=".3f"))
 class Cross_validation:
+    '''
+    Perform cross-validation of linear regression for a given set of
+    features (X) and target variable (Y).
+    '''
     def __init__(self, X, Y):
         self.X = X
         self.Y = Y
-    def cross_valide_r2(self, varCol, cv=5):
+    def cross_valide_r2(self, varCol, cv=10):
+        '''
+        Compute cross-validation for a given set of features
+        :param varCol: list of features names
+        :param cv: number of packages k
+        :return: a list of R² scores obtained from different train-test combinations
+        '''
         self.scoring = ['r2', 'neg_mean_squared_error']
         varCol = varCol
         regR = LinearRegression()
         self.scores = cross_validate(regR, self.X[varCol], self.Y, cv=cv, scoring=self.scoring)
         return self.scores["test_r2"]
-    def cross_valide_mse(self, varCol, cv=5):
+    def cross_valide_mse(self, varCol, cv=10):
+        '''
+        Compute cross-validation for a given set of features
+        :param varCol: list of features names
+        :param cv: number of packages k
+        :return: a list of MSE obtained from different train-test combinations
+        '''
         self.scoring = ['r2', 'neg_mean_squared_error']
         varCol = varCol
         regR = LinearRegression()
         self.scores = cross_validate(regR, self.X[varCol], self.Y, cv=cv, scoring=self.scoring)
         return self.scores["test_neg_mean_squared_error"]
 class FinalModel:
+    '''
+    Calculates final model with selected parameters
+    and print the model equation
+    '''
     def __init__(self, X, Y, varCol):
+        '''
+        Load final model data
+        :param X: initial dataset features
+        :param Y: target variable
+        :param varCol: list of features retained in the final model
+        '''
         self.X = X
         self.Y = Y
         self.X = self.X[varCol]
     def afficheEq(self):
+        '''
+        Display the equation of final model
+        '''
         resSM = calculSM(self.X, self.Y)
         for index in resSM.params.index:
              print(f"({round(resSM.params[index], 3)} * {index}) + ", end="")

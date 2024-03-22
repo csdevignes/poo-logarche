@@ -22,8 +22,7 @@ import statistics as stat
 
 class Feature:
     '''
-    Create a general object Feature which extract data from trace, creates neeeded
-    categories and save a .csv file
+    Create a general object Feature which extract data from trace and save a .csv file
     '''
 
     def __init__(self, df):
@@ -32,39 +31,6 @@ class Feature:
         :param df: dataframe from trace
         '''
         self.data = df
-        self.split_date()
-        self.split_hour()
-        self.extract_td()
-
-    def split_date(self):
-        '''
-        Creates a column date from "Heure". Categorizes date in working days
-        (1) and off-days (0).
-        '''
-        self.data["Date"] = pd.to_datetime(self.data["Heure"]).dt.date
-        self.data["Working_day"] = ((self.data["Date"].between(date(2023, 12, 18), date(2023, 12, 22))) |
-                                    (self.data["Date"].between(date(2023, 12, 11), date(2023, 12, 15))) |
-                                    (self.data["Date"].between(date(2023, 12, 4), date(2023, 12, 8))) |
-                                    (self.data["Date"].between(date(2023, 11, 27), date(2023, 12, 1))) |
-                                    (self.data["Date"].between(date(2023, 11, 20), date(2023, 11, 24))) |
-                                    (self.data["Date"].between(date(2023, 11, 13), date(2023, 11, 17))) |
-                                    (self.data["Date"].between(date(2023, 11, 6), date(2023, 11, 10))) |
-                                    (self.data["Date"].between(date(2023, 11, 2), date(2023, 11, 3))))
-    def split_hour(self):
-        '''
-        Creates a column "hour only" from "Heure". Categorizes data in working
-        hours (1) and off-hours (0).
-        '''
-        self.data["Hour_only"] = pd.to_datetime(self.data["Heure"]).dt.time
-        self.data["Working_hour"] = ((self.data["Hour_only"].between(time(9, 00), time(18, 00))) &
-                                     (self.data["Working_day"] == True))
-    def extract_td(self):
-        '''
-        Creates a column "TD" which contains the number of the TD to which
-        the log entry is related.
-        '''
-        self.data["TD"] = self.data["Contexte"].str.extract(r'TD#?(\d)')
-        self.data["TD"] = self.data["TD"].astype('object').fillna(0).astype('int64')
     def save_csv(self, filename="feature"):
         '''
         Creates a method to save a given feature as csv, in the feature
@@ -282,4 +248,4 @@ if __name__ == "__main__":
     # f_time.session_sum()
     # f_time.session_avg()
     pd.options.display.max_rows = 999
-    print(f_inter.feature.head())
+    print(f_inter.feature)

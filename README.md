@@ -1,4 +1,8 @@
 # poo-logarche
+Usage:
+```
+python logarche.py
+```
 ## Context
 Final Project POO-Python. Performed for the course of Azim Roussanaly,
 IDMC, Université de Lorraine, year 2023-2024.
@@ -42,6 +46,8 @@ For cross-validation of the models, only R² and MSE were taken in account.
 ## TODO
 * Implement classification models using created categories "success" and
 "mention"
-* Implement an interactive interface in the [main](logarche.py)
 * Make statistics with the metrics obtained from cross-validation
 * Add external dependencies
+* Allow choosing all the graph types in EDA
+* Add possibility to use normalized data for machine learning
+* Allow to input several feature to remove at the same time
